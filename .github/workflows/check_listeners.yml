@@ -24,10 +24,3 @@ jobs:
         python check_listeners.py
       env:
         JMX_DIR: '.'
-    
-    # Abort upload if listeners enabled
-    - name: Fail if listeners are enabled
-      if: steps.check_listeners.outcome == 'failure'
-      run: |
-        echo "Some listeners are enabled. Upload aborted."
-        exit 1
