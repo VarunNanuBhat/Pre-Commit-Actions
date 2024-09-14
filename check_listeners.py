@@ -2,20 +2,26 @@ import os
 import xml.etree.ElementTree as ET
 
 def check_listeners_disabled(jmx_file):
-    tree = ET.parse(jmx_file)
-    root = tree.getroot()
+    try:
+        tree = ET.parse(jmx_file)
+        root = tree.getroot()
 
-    # Namespace for JMeter files
-    namespace = {'jmeter': 'http://jmeter.apache.org/2021/05'}
-    listeners = root.findall(".//jmeter:ResultCollector", namespaces=namespace)
+        # JMeter files may not have a namespace; adjust as necessary
+        namespace = {}
+        listeners = root.findall(".//ResultCollector", namespaces=namespace)
 
-    all_disabled = True
-    for listener in listeners:
-        if listener.attrib.get('enabled') != 'false':
-            all_disabled = False
-            print(f"Listener {listener.attrib.get('testname')} in {jmx_file} is enabled.")
+        all_disabled = True
+        for listener in listeners:
+            enabled = listener.attrib.get('enabled')
+            if enabled != 'false':  # Checking if 'enabled' is not 'false'
+                all_disabled = False
+                testname = listener.attrib.get('testname', 'Unnamed Listener')
+                print(f"Listener '{testname}' in {jmx_file} is enabled.")
 
-    return all_disabled
+        return all_disabled
+    except ET.ParseError as e:
+        print(f"Error parsing {jmx_file}: {e}")
+        return False
 
 # Directory where .jmx files are located
 jmx_dir = os.getenv('JMX_DIR', '.')
